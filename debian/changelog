@@ -1,3 +1,10 @@
+mopidy-spotify (1.2.0-0mopidy2) unstable; urgency=medium
+
+  * Move default config from /etc/mopidy/extensions.d/spotify.conf to
+    /usr/share/mopidy/conf.d/spotify.conf.
+
+ -- Stein Magnus Jodal <stein.magnus@jodal.no>  Mon, 13 Oct 2014 22:58:15 +0200
+
 mopidy-spotify (1.2.0-0mopidy1) unstable; urgency=medium
 
   * New upstream release.
