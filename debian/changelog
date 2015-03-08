@@ -1,3 +1,10 @@
+mopidy-spotify (1.2.0-0mopidy3) unstable; urgency=medium
+
+  * Add version specifier to python-spotify dependency. This package does not
+    work with python-spotify >= 2.
+
+ -- Stein Magnus Jodal <stein.magnus@jodal.no>  Sun, 08 Mar 2015 01:17:21 +0100
+
 mopidy-spotify (1.2.0-0mopidy2) unstable; urgency=medium
 
   * Move default config from /etc/mopidy/extensions.d/spotify.conf to
