@@ -2,19 +2,19 @@
 Mopidy-Spotify
 **************
 
-.. image:: https://pypip.in/v/Mopidy-Spotify/badge.png
+.. image:: https://img.shields.io/pypi/v/Mopidy-Spotify.svg?style=flat
     :target: https://pypi.python.org/pypi/Mopidy-Spotify/
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/Mopidy-Spotify/badge.png
+.. image:: https://img.shields.io/pypi/dm/Mopidy-Spotify.svg?style=flat
     :target: https://pypi.python.org/pypi/Mopidy-Spotify/
     :alt: Number of PyPI downloads
 
-.. image:: https://travis-ci.org/mopidy/mopidy-spotify.png?branch=master
+.. image:: https://img.shields.io/travis/mopidy/mopidy-spotify/master.svg?style=flat
     :target: https://travis-ci.org/mopidy/mopidy-spotify
     :alt: Travis CI build status
 
-.. image:: https://coveralls.io/repos/mopidy/mopidy-spotify/badge.png?branch=master
+.. image:: https://img.shields.io/coveralls/mopidy/mopidy-spotify/master.svg?style=flat
    :target: https://coveralls.io/r/mopidy/mopidy-spotify?branch=master
    :alt: Test coverage
 
@@ -41,7 +41,7 @@ Dependencies
 - ``pyspotify`` >= 1.9, < 2. The ``libspotify`` python wrapper. The package is
   available as ``python-spotify`` from apt.mopidy.com or ``pyspotify`` on PyPI.
 
-- ``Mopidy`` >= 0.16. The music server that Mopidy-Spotify extends.
+- ``Mopidy`` >= 0.18. The music server that Mopidy-Spotify extends.
 
 If you install Mopidy-Spotify from apt.mopidy.com, AUR, or Homebrew, these
 dependencies are installed automatically.
@@ -58,7 +58,7 @@ Debian/Ubuntu/Raspbian: Install the ``mopidy-spotify`` package from
 Arch Linux: Install the ``mopidy-spotify`` package from
 `AUR <https://aur.archlinux.org/packages/mopidy-spotify/>`_::
 
-    sudo yaourt -S mopidy-spotify
+    yaourt -S mopidy-spotify
 
 OS X: Install the ``mopidy-spotify`` package from the
 `mopidy/mopidy <https://github.com/mopidy/homebrew-mopidy>`_ Homebrew tap::
@@ -109,6 +109,19 @@ Project resources
 
 Changelog
 =========
+
+v1.3.0 (2015-03-25)
+-------------------
+
+- Require Mopidy >= 1.0.
+
+- Update to work with new playback API in Mopidy 1.0.
+
+- Update to work with new playlists API in Mopidy 1.0.
+
+- Update to work with new search API in Mopidy 1.0.
+
+- Add ``library.get_images()`` support for cover art.
 
 v1.2.0 (2014-07-21)
 -------------------

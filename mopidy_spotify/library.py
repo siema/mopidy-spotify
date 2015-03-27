@@ -4,13 +4,14 @@ import logging
 import threading
 import urllib
 
+from mopidy import backend
+from mopidy.models import Ref, SearchResult, Track
+
 import pykka
+
 from spotify import Link, SpotifyError, ToplistBrowser
 
-from mopidy import backend
-from mopidy.models import Ref, Track, SearchResult
-
-from . import translator, utils
+from mopidy_spotify import images, translator, utils
 
 logger = logging.getLogger(__name__)
 
@@ -161,9 +162,6 @@ class SpotifyLibraryProvider(backend.LibraryProvider):
 
         return result
 
-    def find_exact(self, query=None, uris=None):
-        return self.search(query=query, uris=uris)
-
     def lookup(self, uri):
         try:
             link = Link.from_string(uri)
@@ -209,8 +207,9 @@ class SpotifyLibraryProvider(backend.LibraryProvider):
     def refresh(self, uri=None):
         pass  # TODO
 
-    def search(self, query=None, uris=None):
+    def search(self, query=None, uris=None, exact=False):
         # TODO Only return results within URI roots given by ``uris``
+        # TODO Support exact search
 
         if not query:
             return self._get_all_tracks()
@@ -297,3 +296,6 @@ class SpotifyLibraryProvider(backend.LibraryProvider):
                     spotify_query.append('%s:"%s"' % (field, value))
         spotify_query = ' '.join(spotify_query)
         return spotify_query
+
+    def get_images(self, uris):
+        return images.get_images(uris)

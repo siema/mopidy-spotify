@@ -4,14 +4,15 @@ import logging
 import os
 import threading
 
-from spotify.manager import SpotifySessionManager as PyspotifySessionManager
-
 from mopidy import audio, backend
 from mopidy.utils import process, versioning
 
-from . import translator
-from .container_manager import SpotifyContainerManager
-from .playlist_manager import SpotifyPlaylistManager
+from spotify.manager import SpotifySessionManager as PyspotifySessionManager
+
+from mopidy_spotify import translator
+from mopidy_spotify.container_manager import SpotifyContainerManager
+from mopidy_spotify.playlist_manager import SpotifyPlaylistManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +188,7 @@ class SpotifySessionManager(process.BaseThread, PyspotifySessionManager):
             self.session.starred(),
             bitrate=self.bitrate, username=self.username))
         playlists = filter(None, playlists)
-        self.backend.playlists.playlists = playlists
+        self.backend.playlists.playlists_map = {pl.uri: pl for pl in playlists}
         logger.info('Loaded %d Spotify playlists', len(playlists))
         backend.BackendListener.send('playlists_loaded')
 
