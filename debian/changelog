@@ -1,6 +1,7 @@
 mopidy-spotify (1.3.0-0mopidy2) unstable; urgency=medium
 
   * Bump Standards-Version to 3.9.6.
+  * Update copyright years.
 
  -- Stein Magnus Jodal <stein.magnus@jodal.no>  Fri, 27 Mar 2015 13:19:44 +0100
 
