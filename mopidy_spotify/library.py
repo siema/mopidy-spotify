@@ -56,6 +56,8 @@ SPOTIFY_COUNTRIES = {
 
 class SpotifyTrack(Track):
     """Proxy object for unloaded Spotify tracks."""
+    __slots__ = ('_spotify_track', '_track')
+
     def __init__(self, uri=None, track=None):
         super(SpotifyTrack, self).__init__()
         if (uri and track) or (not uri and not track):
@@ -92,6 +94,9 @@ class SpotifyTrack(Track):
 
     def copy(self, **values):
         return self._proxy.copy(**values)
+
+    def replace(self, **values):
+        return self._proxy.replace(**values)
 
 
 class SpotifyLibraryProvider(backend.LibraryProvider):
@@ -266,7 +271,8 @@ class SpotifyLibraryProvider(backend.LibraryProvider):
         # Since we can't search for the entire Spotify library, we return
         # all tracks in the playlists when the query is empty.
         tracks = []
-        for playlist in self.backend.playlists.playlists:
+        for ref in self.backend.playlists.as_list():
+            playlist = self.backend.playlists.lookup(ref.uri)
             tracks += playlist.tracks
         return SearchResult(uri='spotify:search', tracks=tracks)
 
