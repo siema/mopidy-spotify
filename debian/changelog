@@ -7,6 +7,7 @@ mopidy-spotify (2.0.0-0mopidy1) UNRELEASED; urgency=medium
   * Build-Depend on mopidy, so it doesn't have to be included in
     pydist-override.
   * Build-Depend on debhelper 9.
+  * Switch to pybuild as build system.
 
  -- Stein Magnus Jodal <stein.magnus@jodal.no>  Tue, 11 Aug 2015 00:28:41 +0200
 
