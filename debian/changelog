@@ -1,4 +1,4 @@
-mopidy-spotify (2.0.0-0mopidy1) UNRELEASED; urgency=medium
+mopidy-spotify (2.0.0-0mopidy1) unstable; urgency=medium
 
   * New upstream release.
   * Remove /usr/share/mopidy/conf.d/spotify.conf. Cache and other data are
@@ -11,7 +11,7 @@ mopidy-spotify (2.0.0-0mopidy1) UNRELEASED; urgency=medium
   * Build-Depend on python-spotify, so it doesn't have to be included in
     pydist-override.
 
- -- Stein Magnus Jodal <stein.magnus@jodal.no>  Tue, 11 Aug 2015 00:28:41 +0200
+ -- Stein Magnus Jodal <stein.magnus@jodal.no>  Tue, 18 Aug 2015 00:13:51 +0200
 
 mopidy-spotify (1.4.0-0mopidy1) unstable; urgency=medium
 
