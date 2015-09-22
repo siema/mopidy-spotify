@@ -1,3 +1,9 @@
+mopidy-spotify (2.1.0-0mopidy1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Stein Magnus Jodal <stein.magnus@jodal.no>  Tue, 22 Sep 2015 21:33:08 +0200
+
 mopidy-spotify (2.0.1-0mopidy1) unstable; urgency=medium
 
   * New upstream release.
