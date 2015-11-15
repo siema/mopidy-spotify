@@ -2,6 +2,7 @@ mopidy-spotify (2.2.0-0mopidy1) unstable; urgency=medium
 
   * New upstream release.
   * Clean dist/* and *.egg-info.
+  * Fix repeated License block in debian/copyright.
 
  -- Stein Magnus Jodal <jodal@debian.org>  Sun, 15 Nov 2015 22:38:50 +0100
 
