@@ -7,3 +7,6 @@ export PYBUILD_DISABLE=test
 
 %:
 	dh $@ --with python2 --buildsystem=pybuild
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGES.rst
