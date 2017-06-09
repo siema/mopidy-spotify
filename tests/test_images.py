@@ -181,7 +181,7 @@ def test_results_are_cached(web_client_mock, img_provider):
     result1 = img_provider.get_images(uris)
     result2 = img_provider.get_images(uris)
 
-    web_client_mock.get.assert_called_once()
+    assert web_client_mock.get.call_count == 1
     assert result1 == result2
 
 
