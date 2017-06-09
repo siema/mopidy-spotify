@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import collections
 import logging
+import urlparse
 
 from mopidy import models
 
@@ -268,3 +269,20 @@ def web_to_image(web_image):
         uri=web_image['url'],
         width=web_image['width'],
         height=web_image['height'])
+
+
+def parse_uri(uri):
+    parsed_uri = urlparse.urlparse(uri)
+    uri_type, uri_id = None, None
+
+    if parsed_uri.scheme == 'spotify':
+        uri_type, uri_id = parsed_uri.path.split(':')[:2]
+    elif parsed_uri.scheme in ('http', 'https'):
+        if parsed_uri.netloc in ('open.spotify.com', 'play.spotify.com'):
+            uri_type, uri_id = parsed_uri.path.split('/')[1:3]
+
+    if uri_type and uri_type in ('track', 'album', 'artist') and uri_id:
+        return {'uri': uri, 'type': uri_type, 'id': uri_id,
+                'key': (uri_type, uri_id)}
+
+    raise ValueError('Could not parse %r as a Spotify URI' % uri)
