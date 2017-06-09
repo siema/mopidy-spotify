@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
+import itertools
 import logging
+import operator
 
 import spotify
 
@@ -13,6 +15,8 @@ _VARIOUS_ARTISTS_URIS = [
     'spotify:artist:0LyfQWJT6nXafLPZqxe9Of',
 ]
 
+_API_MAX_IDS_PER_REQUEST = 50
+_API_BASE_URI = 'https://api.spotify.com/v1/%ss/?ids=%s'
 
 def lookup(config, session, uri):
     try:
@@ -41,6 +45,40 @@ def lookup(config, session, uri):
     except spotify.Error as exc:
         logger.info('Failed to lookup "%s": %s', uri, exc)
         return []
+
+
+def web_lookups(web_client, uris):
+    # TODO: Add caching of lookups.
+    result = {}
+    uri_type_getter = operator.attrgetter('type')
+    uris = sorted((translator.parse_uri(u) for u in uris), key=uri_type_getter)
+
+    for uri_type, group in itertools.groupby(uris, uri_type_getter):
+        batch = []
+        for link in group:
+            batch.append(link)
+            if len(batch) >= _API_MAX_IDS_PER_REQUEST:
+                result.update(
+                    _process_web_lookups_batch(web_client, uri_type, batch))
+                batch = []
+        result.update(_process_web_lookups_batch(web_client, uri_type, batch))
+    return result
+
+
+def _process_web_lookups_batch(web_client, uri_type, batch):
+    result = {}
+    ordered_ids = [l.id for l in batch]
+    ids_to_links = {l.id: l for l in batch}
+
+    if not batch:
+        return result
+
+    data = web_client.get(_API_BASE_URI % (uri_type, ','.join(ordered_ids)))
+    for item in data.get(uri_type + 's', []):
+        if item:
+            result[ids_to_links[item['id']].uri] = item
+
+    return result
 
 
 def _lookup_track(config, sp_link):
