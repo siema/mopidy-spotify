@@ -468,3 +468,54 @@ class TestWebToTrack(object):
         assert track.track_no == 7
         assert track.disc_no == 1
         assert track.length == 174300
+
+
+class TestParseUri(object):
+
+    def test_track_uri(self):
+        uri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'track'
+        assert result.id == '11dFghVXANMlKmJXsNCbNl'
+
+    def test_track_link(self):
+        uri = 'https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'track'
+        assert result.id == '11dFghVXANMlKmJXsNCbNl'
+
+    def test_album_uri(self):
+        uri = 'spotify:album:4aawyAB9vmqN3uQ7FjRGTy'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'album'
+        assert result.id == '4aawyAB9vmqN3uQ7FjRGTy'
+
+    def test_album_link(self):
+        uri = 'https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'album'
+        assert result.id == '4aawyAB9vmqN3uQ7FjRGTy'
+
+    def test_artist_uri(self):
+        uri = 'spotify:artist:0TnOYISbd1XYRBk9myaseg'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'artist'
+        assert result.id == '0TnOYISbd1XYRBk9myaseg'
+
+    def test_artist_link(self):
+        uri = 'https://open.spotify.com/artist/0TnOYISbd1XYRBk9myaseg'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'artist'
+        assert result.id == '0TnOYISbd1XYRBk9myaseg'

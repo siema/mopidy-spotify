@@ -271,6 +271,9 @@ def web_to_image(web_image):
         height=web_image['height'])
 
 
+_result = collections.namedtuple('URI', ['uri', 'type', 'id'])
+
+
 def parse_uri(uri):
     parsed_uri = urlparse.urlparse(uri)
     uri_type, uri_id = None, None
@@ -282,7 +285,6 @@ def parse_uri(uri):
             uri_type, uri_id = parsed_uri.path.split('/')[1:3]
 
     if uri_type and uri_type in ('track', 'album', 'artist') and uri_id:
-        return {'uri': uri, 'type': uri_type, 'id': uri_id,
-                'key': (uri_type, uri_id)}
+        return _result(uri, uri_type, uri_id)
 
     raise ValueError('Could not parse %r as a Spotify URI' % uri)
