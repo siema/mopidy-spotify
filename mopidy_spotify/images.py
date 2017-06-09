@@ -5,7 +5,7 @@ import logging
 import operator
 import urlparse
 
-from mopidy import models
+from mopidy_spotify import translator
 
 
 # NOTE: This module is independent of libspotify and built using the Spotify
@@ -77,16 +77,12 @@ def _process_uris(web_client, uri_type, uris):
             if uri_type == 'track':
                 album_key = _parse_uri(item['album']['uri'])['key']
                 if album_key not in _cache:
-                    _cache[album_key] = tuple(
-                        _translate_image(i) for i in item['album']['images'])
+                    _cache[album_key] = tuple(translator.web_to_image(i)
+                                              for i in item['album']['images'])
                 _cache[uri['key']] = _cache[album_key]
             else:
-                _cache[uri['key']] = tuple(
-                    _translate_image(i) for i in item['images'])
+                _cache[uri['key']] = tuple(translator.web_to_image(i)
+                                           for i in item['images'])
         result[uri['uri']] = _cache[uri['key']]
 
     return result
-
-
-def _translate_image(i):
-    return models.Image(uri=i['url'], height=i['height'], width=i['width'])

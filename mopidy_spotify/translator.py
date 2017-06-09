@@ -261,3 +261,10 @@ def web_to_track(web_track):
         length=web_track['duration_ms'],
         disc_no=web_track['disc_number'],
         track_no=web_track['track_number'])
+
+
+def web_to_image(web_image):
+    return models.Image(
+        uri=web_image['url'],
+        width=web_image['width'],
+        height=web_image['height'])
