@@ -26,14 +26,21 @@ def lookup(config, session, uri, web_client=None):
         logger.info('Failed to lookup "%s": %s', uri, exc)
         return []
 
-    if web_client and sp_link.type is spotify.LinkType.TRACK:
-        result = web_lookup(web_client, uri)
-        return [translator.web_to_track(result, bitrate=config['bitrate'])]
+    if web_client:
+        if sp_link.type is spotify.LinkType.TRACK:
+            result = web_lookup(web_client, uri)
+            return [translator.web_to_track(result, bitrate=config['bitrate'])]
+        elif sp_link.type is spotify.LinkType.ALBUM:
+            result = web_lookup(web_client, uri)
+            album = translator.web_to_album(result)
+            # TODO: Check for result['tracks']['next']...
+            return [
+                translator.web_to_track(
+                    item, album=album, bitrate=config['bitrate'])
+                for item in result['tracks']['items']]
 
     try:
-        if sp_link.type is spotify.LinkType.ALBUM:
-            return list(_lookup_album(config, sp_link))
-        elif sp_link.type is spotify.LinkType.ARTIST:
+        if sp_link.type is spotify.LinkType.ARTIST:
             with utils.time_logger('Artist lookup'):
                 return list(_lookup_artist(config, sp_link))
         elif sp_link.type is spotify.LinkType.PLAYLIST:
@@ -86,17 +93,6 @@ def _process_web_lookups_batch(web_client, uri_type, batch):
             result[ids_to_links[item['id']].uri] = item
 
     return result
-
-
-def _lookup_album(config, sp_link):
-    sp_album = sp_link.as_album()
-    sp_album_browser = sp_album.browse()
-    sp_album_browser.load(config['timeout'])
-    for sp_track in sp_album_browser.tracks:
-        track = translator.to_track(
-            sp_track, bitrate=config['bitrate'])
-        if track is not None:
-            yield track
 
 
 def _lookup_artist(config, sp_link):

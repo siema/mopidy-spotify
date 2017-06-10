@@ -57,17 +57,13 @@ def test_lookup_of_track_uri(session_mock, sp_track_mock, web_client_mock,
     assert track.bitrate == 160
 
 
-def test_lookup_of_album_uri(session_mock, sp_album_browser_mock, provider):
+def test_lookup_of_album_uri(session_mock, sp_album_browser_mock,
+                             web_client_mock, web_album_lookup_mock, provider):
     sp_album_mock = sp_album_browser_mock.album
     session_mock.get_link.return_value = sp_album_mock.link
+    web_client_mock.get.return_value = web_album_lookup_mock
 
     results = provider.lookup('spotify:album:def')
-
-    session_mock.get_link.assert_called_once_with('spotify:album:def')
-    sp_album_mock.link.as_album.assert_called_once_with()
-
-    sp_album_mock.browse.assert_called_once_with()
-    sp_album_browser_mock.load.assert_called_once_with(10)
 
     assert len(results) == 2
     track = results[0]

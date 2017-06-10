@@ -249,10 +249,11 @@ def web_to_album(web_album):
         artists=artists)
 
 
-def web_to_track(web_track, bitrate=None):
+def web_to_track(web_track, album=None, bitrate=None):
     artists = [
         web_to_artist(web_artist) for web_artist in web_track['artists']]
-    album = web_to_album(web_track['album'])
+    if not album:
+        album = web_to_album(web_track['album'])
 
     return models.Track(
         uri=web_track['uri'],
