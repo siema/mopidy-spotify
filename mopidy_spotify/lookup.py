@@ -18,17 +18,20 @@ _VARIOUS_ARTISTS_URIS = [
 _API_MAX_IDS_PER_REQUEST = 50
 _API_BASE_URI = 'https://api.spotify.com/v1/%ss/?ids=%s'
 
-def lookup(config, session, uri):
+
+def lookup(config, session, uri, web_client=None):
     try:
         sp_link = session.get_link(uri)
     except ValueError as exc:
         logger.info('Failed to lookup "%s": %s', uri, exc)
         return []
 
+    if web_client and sp_link.type is spotify.LinkType.TRACK:
+        result = web_lookup(web_client, uri)
+        return [translator.web_to_track(result, bitrate=config['bitrate'])]
+
     try:
-        if sp_link.type is spotify.LinkType.TRACK:
-            return list(_lookup_track(config, sp_link))
-        elif sp_link.type is spotify.LinkType.ALBUM:
+        if sp_link.type is spotify.LinkType.ALBUM:
             return list(_lookup_album(config, sp_link))
         elif sp_link.type is spotify.LinkType.ARTIST:
             with utils.time_logger('Artist lookup'):
@@ -45,6 +48,10 @@ def lookup(config, session, uri):
     except spotify.Error as exc:
         logger.info('Failed to lookup "%s": %s', uri, exc)
         return []
+
+
+def web_lookup(web_client, uri):
+    return web_lookups(web_client, [uri]).get(uri)
 
 
 def web_lookups(web_client, uris):
@@ -79,14 +86,6 @@ def _process_web_lookups_batch(web_client, uri_type, batch):
             result[ids_to_links[item['id']].uri] = item
 
     return result
-
-
-def _lookup_track(config, sp_link):
-    sp_track = sp_link.as_track()
-    sp_track.load(config['timeout'])
-    track = translator.to_track(sp_track, bitrate=config['bitrate'])
-    if track is not None:
-        yield track
 
 
 def _lookup_album(config, sp_link):

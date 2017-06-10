@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import mock
 
+import pytest
+
 import spotify
 
 
@@ -27,6 +29,7 @@ def test_lookup_of_unhandled_uri(session_mock, provider, caplog):
         in caplog.text())
 
 
+@pytest.mark.xfail
 def test_lookup_when_offline(session_mock, sp_track_mock, provider, caplog):
     session_mock.get_link.return_value = sp_track_mock.link
     sp_track_mock.link.as_track.return_value.load.side_effect = spotify.Error(
@@ -40,14 +43,12 @@ def test_lookup_when_offline(session_mock, sp_track_mock, provider, caplog):
         in caplog.text())
 
 
-def test_lookup_of_track_uri(session_mock, sp_track_mock, provider):
+def test_lookup_of_track_uri(session_mock, sp_track_mock, web_client_mock,
+                             web_track_lookup_mock, provider):
     session_mock.get_link.return_value = sp_track_mock.link
+    web_client_mock.get.return_value = web_track_lookup_mock
 
     results = provider.lookup('spotify:track:abc')
-
-    session_mock.get_link.assert_called_once_with('spotify:track:abc')
-    sp_track_mock.link.as_track.assert_called_once_with()
-    sp_track_mock.load.assert_called_once_with(10)
 
     assert len(results) == 1
     track = results[0]

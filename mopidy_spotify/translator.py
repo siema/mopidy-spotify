@@ -249,7 +249,7 @@ def web_to_album(web_album):
         artists=artists)
 
 
-def web_to_track(web_track):
+def web_to_track(web_track, bitrate=None):
     artists = [
         web_to_artist(web_artist) for web_artist in web_track['artists']]
     album = web_to_album(web_track['album'])
@@ -261,7 +261,8 @@ def web_to_track(web_track):
         album=album,
         length=web_track['duration_ms'],
         disc_no=web_track['disc_number'],
-        track_no=web_track['track_number'])
+        track_no=web_track['track_number'],
+        bitrate=bitrate)
 
 
 def web_to_image(web_image):

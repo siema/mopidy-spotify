@@ -25,8 +25,10 @@ def test_search_with_empty_query_returns_nothing(provider, caplog):
     assert 'Ignored search with empty query' in caplog.text()
 
 
-def test_search_by_single_uri(session_mock, sp_track_mock, provider):
+def test_search_by_single_uri(session_mock, sp_track_mock, web_client_mock,
+                              web_track_lookup_mock, provider):
     session_mock.get_link.return_value = sp_track_mock.link
+    web_client_mock.get.return_value = web_track_lookup_mock
 
     result = provider.search({'uri': ['spotify:track:abc']})
 
@@ -39,8 +41,10 @@ def test_search_by_single_uri(session_mock, sp_track_mock, provider):
     assert track.bitrate == 160
 
 
-def test_search_by_multiple_uris(session_mock, sp_track_mock, provider):
+def test_search_by_multiple_uris(session_mock, sp_track_mock, web_client_mock,
+                                 web_track_lookup_mock, provider):
     session_mock.get_link.return_value = sp_track_mock.link
+    web_client_mock.get.return_value = web_track_lookup_mock
 
     result = provider.search({
         'uri': ['spotify:track:abc', 'spotify:track:abc']
@@ -199,9 +203,10 @@ def test_handles_empty_response(web_client_mock, provider):
     assert len(result.tracks) == 0
 
 
-def test_exact_is_ignored(
-        session_mock, sp_track_mock, web_client_mock, provider):
+def test_exact_is_ignored(session_mock, sp_track_mock, web_client_mock,
+                          web_track_lookup_mock, provider):
     session_mock.get_link.return_value = sp_track_mock.link
+    web_client_mock.get.return_value = web_track_lookup_mock
 
     result1 = provider.search({'uri': ['spotify:track:abc']})
     result2 = provider.search({'uri': ['spotify:track:abc']}, exact=True)

@@ -332,7 +332,13 @@ def web_track_mock(web_artist_mock, web_album_mock):
         'name': 'ABC 123',
         'track_number': 7,
         'uri': 'spotify:track:abc',
+        'id': 'abc',
     }
+
+
+@pytest.fixture
+def web_track_lookup_mock(web_track_mock):
+    return {'tracks': [web_track_mock]}
 
 
 @pytest.fixture
