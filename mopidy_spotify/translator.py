@@ -287,10 +287,14 @@ def parse_uri(uri):
     else:
         parts = []
 
+    # Strip out empty parts to ensure we are strict about URI parsing.
+    parts = [p for p in parts if p.strip()]
+
     if len(parts) == 2 and parts[0] in ('track', 'album', 'artist'):
         return _result(uri, parts[0],  parts[1], None)
     elif len(parts) == 3 and parts[0] == 'user' and parts[2] == 'starred':
-        return _result(uri, 'starred',  None, parts[1])
+        if parsed_uri.scheme == 'spotify':
+            return _result(uri, 'starred',  None, parts[1])
     elif len(parts) == 4 and parts[0] == 'user' and parts[2] == 'playlist':
         return _result(uri, 'playlist',  parts[3], parts[1])
 

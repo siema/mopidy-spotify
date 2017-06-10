@@ -4,6 +4,8 @@ import mock
 
 from mopidy import models
 
+import pytest
+
 import spotify
 
 from mopidy_spotify import translator
@@ -472,8 +474,14 @@ class TestWebToTrack(object):
 
 class TestParseUri(object):
 
-    def test_track_uri(self):
-        uri = 'spotify:track:123abc'
+    @pytest.mark.parametrize('uri', [
+        'spotify:track:123abc',
+        'http://open.spotify.com/track/123abc',
+        'http://play.spotify.com/track/123abc',
+        'https://open.spotify.com/track/123abc',
+        'https://play.spotify.com/track/123abc',
+    ])
+    def test_track_uri(self, uri):
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
@@ -481,26 +489,14 @@ class TestParseUri(object):
         assert result.id == '123abc'
         assert result.owner is None
 
-    def test_track_link(self):
-        uri = 'https://open.spotify.com/track/123abc'
-        result = translator.parse_uri(uri)
-
-        assert result.uri == uri
-        assert result.type == 'track'
-        assert result.id == '123abc'
-        assert result.owner is None
-
-    def test_album_uri(self):
-        uri = 'spotify:album:123abc'
-        result = translator.parse_uri(uri)
-
-        assert result.uri == uri
-        assert result.type == 'album'
-        assert result.id == '123abc'
-        assert result.owner is None
-
-    def test_album_link(self):
-        uri = 'https://open.spotify.com/album/123abc'
+    @pytest.mark.parametrize('uri', [
+        'spotify:album:123abc',
+        'http://open.spotify.com/album/123abc',
+        'http://play.spotify.com/album/123abc',
+        'https://open.spotify.com/album/123abc',
+        'https://play.spotify.com/album/123abc',
+    ])
+    def test_album_uri(self, uri):
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
@@ -508,8 +504,14 @@ class TestParseUri(object):
         assert result.id == '123abc'
         assert result.owner is None
 
-    def test_artist_uri(self):
-        uri = 'spotify:artist:123abc'
+    @pytest.mark.parametrize('uri', [
+        'spotify:artist:123abc',
+        'http://open.spotify.com/artist/123abc',
+        'http://play.spotify.com/artist/123abc',
+        'https://open.spotify.com/artist/123abc',
+        'https://play.spotify.com/artist/123abc',
+    ])
+    def test_artist_uri(self, uri):
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
@@ -517,26 +519,14 @@ class TestParseUri(object):
         assert result.id == '123abc'
         assert result.owner is None
 
-    def test_artist_link(self):
-        uri = 'https://open.spotify.com/artist/123abc'
-        result = translator.parse_uri(uri)
-
-        assert result.uri == uri
-        assert result.type == 'artist'
-        assert result.id == '123abc'
-        assert result.owner is None
-
-    def test_playlist_uri(self):
-        uri = 'spotify:user:alice:playlist:123abc'
-        result = translator.parse_uri(uri)
-
-        assert result.uri == uri
-        assert result.type == 'playlist'
-        assert result.id == '123abc'
-        assert result.owner == 'alice'
-
-    def test_playlist_link(self):
-        uri = 'http://open.spotify.com/user/alice/playlist/123abc'
+    @pytest.mark.parametrize('uri', [
+        'spotify:user:alice:playlist:123abc',
+        'http://open.spotify.com/user/alice/playlist/123abc',
+        'http://play.spotify.com/user/alice/playlist/123abc',
+        'https://open.spotify.com/user/alice/playlist/123abc',
+        'https://play.spotify.com/user/alice/playlist/123abc',
+    ])
+    def test_playlist_uri(self, uri):
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
@@ -544,7 +534,11 @@ class TestParseUri(object):
         assert result.id == '123abc'
         assert result.owner == 'alice'
 
-    def test_starred_uri(self):
+    @pytest.mark.parametrize('uri', [
+        'spotify:user:alice:starred',
+        # Starred http links is not supported.
+    ])
+    def test_starred_uri(self, uri):
         uri = 'spotify:user:alice:starred'
         result = translator.parse_uri(uri)
 
@@ -552,3 +546,30 @@ class TestParseUri(object):
         assert result.type == 'starred'
         assert result.id is None
         assert result.owner == 'alice'
+
+    @pytest.mark.parametrize('uri', [
+        'spotify:unknown:123abc',
+        'spotify:track',
+        'spotify:track:',
+        'spotify:track: ',
+        'spotify:track:123abc:foobar',
+        'spotify:user:alice',
+        'spotify:user:alice:track:123abc',
+        'spotify:user:alice:starred:123abc',
+        'spotify:user:alice:playlist:',
+        'spotify:user:alice:playlist: ',
+        'http://open.spotify.com/unknown/123abc',
+        'http://open.spotify.com/track',
+        'http://open.spotify.com/track/',
+        'http://open.spotify.com/track/ ',
+        'http://open.spotify.com/user/alice',
+        'http://open.spotify.com/user/alice/track/123abc',
+        'http://open.spotify.com/user/alice/starred',
+        'http://open.spotify.com/user/alice/playlist',
+        'http://open.spotify.com/user/alice/playlist/',
+        'http://example.com/track/123abc',
+        'sftp://open.spotify.com/track/123abc'
+    ])
+    def test_bad_uri(self, uri):
+        with pytest.raises(ValueError):
+            translator.parse_uri(uri)
