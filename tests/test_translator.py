@@ -473,49 +473,82 @@ class TestWebToTrack(object):
 class TestParseUri(object):
 
     def test_track_uri(self):
-        uri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'
+        uri = 'spotify:track:123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'track'
-        assert result.id == '11dFghVXANMlKmJXsNCbNl'
+        assert result.id == '123abc'
+        assert result.owner is None
 
     def test_track_link(self):
-        uri = 'https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl'
+        uri = 'https://open.spotify.com/track/123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'track'
-        assert result.id == '11dFghVXANMlKmJXsNCbNl'
+        assert result.id == '123abc'
+        assert result.owner is None
 
     def test_album_uri(self):
-        uri = 'spotify:album:4aawyAB9vmqN3uQ7FjRGTy'
+        uri = 'spotify:album:123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'album'
-        assert result.id == '4aawyAB9vmqN3uQ7FjRGTy'
+        assert result.id == '123abc'
+        assert result.owner is None
 
     def test_album_link(self):
-        uri = 'https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy'
+        uri = 'https://open.spotify.com/album/123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'album'
-        assert result.id == '4aawyAB9vmqN3uQ7FjRGTy'
+        assert result.id == '123abc'
+        assert result.owner is None
 
     def test_artist_uri(self):
-        uri = 'spotify:artist:0TnOYISbd1XYRBk9myaseg'
+        uri = 'spotify:artist:123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'artist'
-        assert result.id == '0TnOYISbd1XYRBk9myaseg'
+        assert result.id == '123abc'
+        assert result.owner is None
 
     def test_artist_link(self):
-        uri = 'https://open.spotify.com/artist/0TnOYISbd1XYRBk9myaseg'
+        uri = 'https://open.spotify.com/artist/123abc'
         result = translator.parse_uri(uri)
 
         assert result.uri == uri
         assert result.type == 'artist'
-        assert result.id == '0TnOYISbd1XYRBk9myaseg'
+        assert result.id == '123abc'
+        assert result.owner is None
+
+    def test_playlist_uri(self):
+        uri = 'spotify:user:alice:playlist:123abc'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'playlist'
+        assert result.id == '123abc'
+        assert result.owner == 'alice'
+
+    def test_playlist_link(self):
+        uri = 'http://open.spotify.com/user/alice/playlist/123abc'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'playlist'
+        assert result.id == '123abc'
+        assert result.owner == 'alice'
+
+    def test_starred_uri(self):
+        uri = 'spotify:user:alice:starred'
+        result = translator.parse_uri(uri)
+
+        assert result.uri == uri
+        assert result.type == 'starred'
+        assert result.id is None
+        assert result.owner == 'alice'
