@@ -521,6 +521,7 @@ class TestParseUri(object):
 
     @pytest.mark.parametrize('uri', [
         'spotify:user:alice:playlist:123abc',
+        'spotify:playlist:alice:123abc',
         'http://open.spotify.com/user/alice/playlist/123abc',
         'http://play.spotify.com/user/alice/playlist/123abc',
         'https://open.spotify.com/user/alice/playlist/123abc',
