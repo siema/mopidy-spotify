@@ -80,7 +80,7 @@ def search(config, session, web_client,
 def _search_by_uri(config, session, web_client, query):
     tracks = []
     for uri in query['uri']:
-        tracks += lookup.lookup(config, session, uri, web_client)
+        tracks += lookup.lookup(config, session, web_client, uri)
 
     uri = 'spotify:search'
     if len(query['uri']) == 1:
