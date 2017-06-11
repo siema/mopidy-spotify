@@ -16,7 +16,7 @@ _VARIOUS_ARTISTS_URIS = [
 ]
 
 _API_MAX_IDS_PER_REQUEST = 50
-_API_BASE_URI = 'https://api.spotify.com/v1/%ss/?ids=%s'
+_API_BASE_LOOKUP_URI = 'https://api.spotify.com/v1/%ss/?ids=%s'
 
 
 def lookup(config, session, uri, web_client=None):
@@ -28,22 +28,15 @@ def lookup(config, session, uri, web_client=None):
 
     if web_client:
         if sp_link.type is spotify.LinkType.TRACK:
-            result = web_lookup(web_client, uri)
-            return [translator.web_to_track(result, bitrate=config['bitrate'])]
+            return list(_lookup_track(web_client, config, uri))
         elif sp_link.type is spotify.LinkType.ALBUM:
-            result = web_lookup(web_client, uri)
-            album = translator.web_to_album(result)
-            # TODO: Check for result['tracks']['next']...
-            return [
-                translator.web_to_track(
-                    item, album=album, bitrate=config['bitrate'])
-                for item in result['tracks']['items']]
+            return list(_lookup_album(web_client, config, uri))
+        elif sp_link.type is spotify.LinkType.ARTIST:
+            with utils.time_logger('Artist lookup'):
+                return list(_lookup_artist(web_client, config, uri))
 
     try:
-        if sp_link.type is spotify.LinkType.ARTIST:
-            with utils.time_logger('Artist lookup'):
-                return list(_lookup_artist(config, sp_link))
-        elif sp_link.type is spotify.LinkType.PLAYLIST:
+        if sp_link.type is spotify.LinkType.PLAYLIST:
             return list(_lookup_playlist(config, sp_link))
         elif sp_link.type is spotify.LinkType.STARRED:
             return list(reversed(list(_lookup_playlist(config, sp_link))))
@@ -61,8 +54,10 @@ def web_lookup(web_client, uri):
     return web_lookups(web_client, [uri]).get(uri)
 
 
-def web_lookups(web_client, uris):
+def web_lookups(web_client, uris, limit=None):
     # TODO: Add caching of lookups.
+    # TODO: Check for errors and handle them.
+    # TODO: Add specific tests for web_lookups.
     result = {}
     uri_type_getter = operator.attrgetter('type')
     uris = sorted((translator.parse_uri(u) for u in uris), key=uri_type_getter)
@@ -71,7 +66,7 @@ def web_lookups(web_client, uris):
         batch = []
         for link in group:
             batch.append(link)
-            if len(batch) >= _API_MAX_IDS_PER_REQUEST:
+            if len(batch) >= (limit or _API_MAX_IDS_PER_REQUEST):
                 result.update(
                     _process_web_lookups_batch(web_client, uri_type, batch))
                 batch = []
@@ -87,7 +82,8 @@ def _process_web_lookups_batch(web_client, uri_type, batch):
     if not batch:
         return result
 
-    data = web_client.get(_API_BASE_URI % (uri_type, ','.join(ordered_ids)))
+    data = web_client.get(
+        _API_BASE_LOOKUP_URI % (uri_type, ','.join(ordered_ids)))
     for item in data.get(uri_type + 's', []):
         if item:
             result[ids_to_links[item['id']].uri] = item
@@ -95,32 +91,38 @@ def _process_web_lookups_batch(web_client, uri_type, batch):
     return result
 
 
-def _lookup_artist(config, sp_link):
-    sp_artist = sp_link.as_artist()
-    sp_artist_browser = sp_artist.browse(
-        type=spotify.ArtistBrowserType.NO_TRACKS)
-    sp_artist_browser.load(config['timeout'])
+def _lookup_track(web_client, config, uri):
+    yield translator.web_to_track(
+        web_lookup(web_client, uri), bitrate=config['bitrate'])
 
-    # Get all album browsers we need first, so they can start retrieving
-    # data in the background.
-    sp_album_browsers = []
-    for sp_album in sp_artist_browser.albums:
-        sp_album.load(config['timeout'])
-        if not sp_album.is_available:
-            continue
-        if sp_album.type is spotify.AlbumType.COMPILATION:
-            continue
-        if sp_album.artist.link.uri in _VARIOUS_ARTISTS_URIS:
-            continue
-        sp_album_browsers.append(sp_album.browse())
 
-    for sp_album_browser in sp_album_browsers:
-        sp_album_browser.load(config['timeout'])
-        for sp_track in sp_album_browser.tracks:
-            track = translator.to_track(
-                sp_track, bitrate=config['bitrate'])
-            if track is not None:
-                yield track
+def _lookup_album(web_client, config, uri):
+    return _convert_album(web_lookup(web_client, uri), config)
+
+
+def _convert_album(result, config):
+    album = translator.web_to_album(result)
+    # TODO: Check for result next pagination.
+    for item in result['tracks']['items']:
+        yield translator.web_to_track(
+            item, album=album, bitrate=config['bitrate'])
+
+
+def _lookup_artist(web_client, config, uri):
+    artist_id = translator.parse_uri(uri).id
+    artist_result = web_client.get(
+        'https://api.spotify.com/v1/artists/%s/albums?'
+        'album_type=album,single&limit=50' % artist_id)
+    # TODO: Limit to given country?
+    # TODO: Check for result next pagination.
+    album_uris = [i['uri'] for i in artist_result['items']]
+    album_result = web_lookups(web_client, album_uris, limit=20)
+
+    for album_uri in album_uris:
+        for track in _convert_album(album_result[album_uri], config):
+            yield track
+
+    # TODO: Convert to using top tracks for artist?
 
 
 def _lookup_playlist(config, sp_link):

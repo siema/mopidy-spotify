@@ -354,6 +354,19 @@ def web_track_simplified_mock(web_artist_mock):
 
 
 @pytest.fixture
+def web_album_simplified_mock():
+    return {
+        'name': 'DEF 456',
+        'uri': 'spotify:album:def',
+        'artists': [web_artist_mock],
+        'id': 'def',
+        'tracks': {
+            'items': [web_track_simplified_mock, web_track_simplified_mock],
+        }
+    }
+
+
+@pytest.fixture
 def web_track_lookup_mock(web_track_mock):
     return {'tracks': [web_track_mock]}
 
@@ -361,6 +374,11 @@ def web_track_lookup_mock(web_track_mock):
 @pytest.fixture
 def web_album_lookup_mock(web_album_mock):
     return {'albums': [web_album_mock]}
+
+
+@pytest.fixture
+def web_artist_albums_mock(web_album_simplified_mock):
+    return {'items': [web_album_simplified_mock, web_album_simplified_mock]}
 
 
 @pytest.fixture
