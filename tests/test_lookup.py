@@ -1,32 +1,15 @@
 from __future__ import unicode_literals
 
-import mock
-
 import pytest
 
 import spotify
 
 
-def test_lookup_of_invalid_uri(session_mock, provider, caplog):
-    session_mock.get_link.side_effect = ValueError('an error message')
-
+def test_lookup_of_invalid_uri(provider, caplog):
     results = provider.lookup('invalid')
 
     assert len(results) == 0
-    assert 'Failed to lookup "invalid": an error message' in caplog.text()
-
-
-def test_lookup_of_unhandled_uri(session_mock, provider, caplog):
-    sp_link_mock = mock.Mock(spec=spotify.Link)
-    sp_link_mock.type = spotify.LinkType.INVALID
-    session_mock.get_link.return_value = sp_link_mock
-
-    results = provider.lookup('something')
-
-    assert len(results) == 0
-    assert (
-        'Failed to lookup "something": Cannot handle <LinkType.INVALID: 0>'
-        in caplog.text())
+    assert 'Failed to lookup "invalid":' in caplog.text()
 
 
 @pytest.mark.xfail
@@ -43,9 +26,7 @@ def test_lookup_when_offline(session_mock, sp_track_mock, provider, caplog):
         in caplog.text())
 
 
-def test_lookup_of_track_uri(session_mock, sp_track_mock, web_client_mock,
-                             web_track_lookup_mock, provider):
-    session_mock.get_link.return_value = sp_track_mock.link
+def test_lookup_of_track_uri(web_client_mock, web_track_lookup_mock, provider):
     web_client_mock.get.return_value = web_track_lookup_mock
 
     results = provider.lookup('spotify:track:abc')
@@ -57,10 +38,7 @@ def test_lookup_of_track_uri(session_mock, sp_track_mock, web_client_mock,
     assert track.bitrate == 160
 
 
-def test_lookup_of_album_uri(session_mock, sp_album_browser_mock,
-                             web_client_mock, web_album_lookup_mock, provider):
-    sp_album_mock = sp_album_browser_mock.album
-    session_mock.get_link.return_value = sp_album_mock.link
+def test_lookup_of_album_uri(web_client_mock, web_album_lookup_mock, provider):
     web_client_mock.get.return_value = web_album_lookup_mock
 
     results = provider.lookup('spotify:album:def')
@@ -72,13 +50,8 @@ def test_lookup_of_album_uri(session_mock, sp_album_browser_mock,
     assert track.bitrate == 160
 
 
-def test_lookup_of_artist_uri(session_mock, sp_artist_browser_mock,
-                              sp_album_browser_mock, web_client_mock,
-                              web_artist_albums_mock, web_album_lookup_mock,
-                              provider):
-    sp_artist_mock = sp_artist_browser_mock.artist
-    session_mock.get_link.return_value = sp_artist_mock.link
-
+def test_lookup_of_artist_uri(web_client_mock, web_artist_albums_mock,
+                              web_album_lookup_mock, provider):
     web_client_mock.get.side_effect = (web_artist_albums_mock,
                                        web_album_lookup_mock)
 

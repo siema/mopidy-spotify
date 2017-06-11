@@ -21,19 +21,25 @@ _API_BASE_LOOKUP_URI = 'https://api.spotify.com/v1/%ss/?ids=%s'
 
 def lookup(config, session, uri, web_client=None):
     try:
-        sp_link = session.get_link(uri)
+        web_link = translator.parse_uri(uri)
     except ValueError as exc:
         logger.info('Failed to lookup "%s": %s', uri, exc)
         return []
 
     if web_client:
-        if sp_link.type is spotify.LinkType.TRACK:
+        if web_link.type == 'track':
             return list(_lookup_track(web_client, config, uri))
-        elif sp_link.type is spotify.LinkType.ALBUM:
+        elif web_link.type == 'album':
             return list(_lookup_album(web_client, config, uri))
-        elif sp_link.type is spotify.LinkType.ARTIST:
+        elif web_link.type == 'artist':
             with utils.time_logger('Artist lookup'):
                 return list(_lookup_artist(web_client, config, uri))
+
+    try:
+        sp_link = session.get_link(uri)
+    except ValueError as exc:
+        logger.info('Failed to lookup "%s": %s', uri, exc)
+        return []
 
     try:
         if sp_link.type is spotify.LinkType.PLAYLIST:
