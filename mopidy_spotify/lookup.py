@@ -27,32 +27,19 @@ def lookup(config, session, web_client, uri):
         return []
 
     if web_link.type == 'track':
-        return list(_lookup_track(web_client, config, uri))
+        return list(_lookup_track(web_client, config, web_link))
     elif web_link.type == 'album':
-        return list(_lookup_album(web_client, config, uri))
+        return list(_lookup_album(web_client, config, web_link))
     elif web_link.type == 'artist':
         with utils.time_logger('Artist lookup'):
-            return list(_lookup_artist(web_client, config, uri))
+            return list(_lookup_artist(web_client, config, web_link))
+    elif web_link.type == 'playlist':
+        return list(_lookup_playlist(web_client, config, web_link))
+    elif web_link.type == 'starred':
+        return list(reversed(_lookup_starred(web_client, config, web_link)))
 
-    try:
-        sp_link = session.get_link(uri)
-    except ValueError as exc:
-        logger.info('Failed to lookup "%s": %s', uri, exc)
-        return []
-
-    try:
-        if sp_link.type is spotify.LinkType.PLAYLIST:
-            return list(_lookup_playlist(config, sp_link))
-        elif sp_link.type is spotify.LinkType.STARRED:
-            return list(reversed(list(_lookup_playlist(config, sp_link))))
-        else:
-            logger.info(
-                'Failed to lookup "%s": Cannot handle %r',
-                uri, sp_link.type)
-            return []
-    except spotify.Error as exc:
-        logger.info('Failed to lookup "%s": %s', uri, exc)
-        return []
+    logger.info('Failed to lookup "%s".', uri)
+    return []
 
 
 def web_lookup(web_client, uri):
@@ -96,13 +83,13 @@ def _process_web_lookups_batch(web_client, uri_type, batch):
     return result
 
 
-def _lookup_track(web_client, config, uri):
+def _lookup_track(web_client, config, link):
     yield translator.web_to_track(
-        web_lookup(web_client, uri), bitrate=config['bitrate'])
+        web_lookup(web_client, link.uri), bitrate=config['bitrate'])
 
 
-def _lookup_album(web_client, config, uri):
-    return _convert_album(web_lookup(web_client, uri), config)
+def _lookup_album(web_client, config, link):
+    return _convert_album(web_lookup(web_client, link.uri), config)
 
 
 def _convert_album(result, config):
@@ -113,11 +100,10 @@ def _convert_album(result, config):
             item, album=album, bitrate=config['bitrate'])
 
 
-def _lookup_artist(web_client, config, uri):
-    artist_id = translator.parse_uri(uri).id
+def _lookup_artist(web_client, config, link):
     artist_result = web_client.get(
         'https://api.spotify.com/v1/artists/%s/albums?'
-        'album_type=album,single&limit=50' % artist_id)
+        'album_type=album,single&limit=50' % link.id)
     # TODO: Limit to given country?
     # TODO: Check for result next pagination.
     album_uris = [i['uri'] for i in artist_result['items']]
@@ -130,12 +116,22 @@ def _lookup_artist(web_client, config, uri):
     # TODO: Convert to using top tracks for artist?
 
 
-def _lookup_playlist(config, sp_link):
-    sp_playlist = sp_link.as_playlist()
-    sp_playlist.load(config['timeout'])
-    for sp_track in sp_playlist.tracks:
-        sp_track.load(config['timeout'])
-        track = translator.to_track(
-            sp_track, bitrate=config['bitrate'])
-        if track is not None:
-            yield track
+def _lookup_playlist(web_client, config, link):
+    # TODO: Check for result next pagination.
+    result = web_client.get('https://api.spotify.com/v1/users/%s/playlists/%s/'
+                            'tracks?limit=100&market=from_token' %
+                            (link.id, link.owner))
+
+    for item in result['items']:
+        yield translator.web_to_track(item, bitrate=config['bitrate'])
+
+
+def _lookup_starred(web_client, config, link):
+    # TODO: Check for result next pagination.
+    playlists_result = web_client.get(
+        'https://api.spotify.com/v1/users/%s/playlists?limit=50' % link.owner)
+    for playlist in playlists_result['items']:
+        if playlist['name'] == 'Starred':
+            link = translator.parse_uri(playlist['uri'])
+            return list(_lookup_playlist(web_client, config, link))
+    return []

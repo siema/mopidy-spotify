@@ -65,15 +65,11 @@ def test_lookup_of_artist_uri(web_client_mock, web_artist_albums_mock,
     assert track.bitrate == 160
 
 
-def test_lookup_of_playlist_uri(session_mock, sp_playlist_mock, provider):
-    session_mock.get_link.return_value = sp_playlist_mock.link
+def test_lookup_of_playlist_uri(web_client_mock, web_playlist_tracks_mock,
+                                provider):
+    web_client_mock.get.return_value = web_playlist_tracks_mock
 
     results = provider.lookup('spotify:playlist:alice:foo')
-
-    session_mock.get_link.assert_called_once_with('spotify:playlist:alice:foo')
-    sp_playlist_mock.link.as_playlist.assert_called_once_with()
-    sp_playlist_mock.load.assert_called_once_with(10)
-    sp_playlist_mock.tracks[0].load.assert_called_once_with(10)
 
     assert len(results) == 1
     track = results[0]
@@ -82,14 +78,17 @@ def test_lookup_of_playlist_uri(session_mock, sp_playlist_mock, provider):
     assert track.bitrate == 160
 
 
-def test_lookup_of_starred_uri(session_mock, sp_starred_mock, provider):
-    session_mock.get_link.return_value = sp_starred_mock.link
+def test_lookup_of_starred_uri(web_client_mock, web_playlists_mock,
+                               web_playlist_tracks_mock, provider):
+    track = web_playlist_tracks_mock['items'][0].copy()
+    track['uri'] = 'spotify:track:newest'
+    track['name'] = 'Newest'
+    web_playlist_tracks_mock['items'].append(track)
+
+    web_client_mock.get.side_effect = (web_playlists_mock,
+                                       web_playlist_tracks_mock)
 
     results = provider.lookup('spotify:user:alice:starred')
-
-    session_mock.get_link.assert_called_once_with('spotify:user:alice:starred')
-    sp_starred_mock.link.as_playlist.assert_called_once_with()
-    sp_starred_mock.load.assert_called_once_with(10)
 
     assert len(results) == 2
     track = results[0]

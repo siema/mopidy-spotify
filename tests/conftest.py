@@ -367,6 +367,11 @@ def web_album_simplified_mock():
 
 
 @pytest.fixture
+def web_playlist_mock():
+    return {'name': 'Starred', 'uri': 'spotify:playlist:alice:bar'}
+
+
+@pytest.fixture
 def web_track_lookup_mock(web_track_mock):
     return {'tracks': [web_track_mock]}
 
@@ -379,6 +384,16 @@ def web_album_lookup_mock(web_album_mock):
 @pytest.fixture
 def web_artist_albums_mock(web_album_simplified_mock):
     return {'items': [web_album_simplified_mock, web_album_simplified_mock]}
+
+
+@pytest.fixture
+def web_playlist_tracks_mock(web_track_mock):
+    return {'items': [web_track_mock]}
+
+
+@pytest.fixture
+def web_playlists_mock(web_playlist_mock):
+    return {'items': [web_playlist_mock]}
 
 
 @pytest.fixture
