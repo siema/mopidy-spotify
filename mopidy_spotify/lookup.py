@@ -4,8 +4,6 @@ import itertools
 import logging
 import operator
 
-import spotify
-
 from mopidy_spotify import translator, utils
 
 
