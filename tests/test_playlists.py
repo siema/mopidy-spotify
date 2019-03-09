@@ -122,11 +122,30 @@ def test_get_items_when_playlist_is_unknown(provider, caplog):
         'spotify:user:alice:playlist:unknown' in caplog.text)
 
 
-def test_as_get_items_uses_cache(provider, web_client_mock):
-    provider.get_items('spotify:user:alice:playlist:foo')
+def test_refresh_loads_all_playlists(provider, web_client_mock):
+    provider.refresh()
 
-    web_client_mock.get_playlist.assert_called_once_with(
-        'spotify:user:alice:playlist:foo', playlists._cache)
+    web_client_mock.get_user_playlists.assert_called_once()
+    assert web_client_mock.get_playlist.call_count == 2
+    expected_calls = [
+        mock.call('spotify:user:alice:playlist:foo', {}),
+        mock.call('spotify:user:bob:playlist:baz', {}),
+    ]
+    web_client_mock.get_playlist.assert_has_calls(expected_calls)
+
+
+def test_refresh_counts_playlists(provider, caplog):
+    provider.refresh()
+
+    assert 'Refreshed 2 playlists' in caplog.text
+
+
+def test_refresh_clears_web_cache(provider):
+    playlists._cache = {'foo': 'foobar', 'foo2': 'foofoo'}
+
+    provider.refresh()
+
+    assert len(playlists._cache) == 0
 
 
 def test_lookup(provider):
