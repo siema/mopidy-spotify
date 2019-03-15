@@ -17,16 +17,26 @@ class memoized(object):
         self.cache = {}
 
     def __call__(self, *args, **kwargs):
-        # NOTE Only args, not kwargs, are part of the memoization key.
-        if not isinstance(args, collections.Hashable):
+        key = self._get_key(args, kwargs)
+        if not isinstance(key, collections.Hashable):
             return self.func(*args, **kwargs)
-        if args in self.cache:
-            return self.cache[args]
+        if key in self.cache:
+            return self.cache[key]
         else:
             value = self.func(*args, **kwargs)
             if value is not None:
-                self.cache[args] = value
+                self.cache[key] = value
             return value
+
+    def _get_key(self, args, kwargs):
+        # NOTE Only args, not kwargs, are part of the memoization key.
+        return args
+
+
+class web_memoized(memoized):
+    def _get_key(self, args, kwargs):
+        web_data = args[0]
+        return '%s::%s' % (web_data.get('uri'), web_data.get('name'))
 
 
 @memoized
@@ -154,6 +164,7 @@ def to_track_refs(sp_tracks, timeout=None):
             yield ref
 
 
+@web_memoized
 def web_to_track_ref(web_track):
     if not valid_web_data(web_track, 'track'):
         return
@@ -166,7 +177,7 @@ def web_to_track_ref(web_track):
         logger.debug('%s is not playable', uri)
         return
 
-    return models.Ref.track(uri=uri, name=web_track.get('name'))
+    return models.Ref.track(uri=uri, name=web_track['name'])
 
 
 def web_to_track_refs(web_tracks):
@@ -189,7 +200,7 @@ def to_playlist(
     if as_items:
         return list(web_to_track_refs(web_tracks))
 
-    name = web_playlist.get('name')
+    name = web_playlist['name']
 
     if not as_ref:
         tracks = [
@@ -208,6 +219,7 @@ def to_playlist(
             uri=web_playlist['uri'], name=name, tracks=tracks)
 
 
+@web_memoized
 def to_playlist_ref(web_playlist, username=None):
     return to_playlist(web_playlist, username=username, as_ref=True)
 
@@ -254,13 +266,15 @@ def _transform_year(date):
             'Cannot parse date "%s"', date)
 
 
+@web_memoized
 def web_to_artist(web_artist):
     if not valid_web_data(web_artist, 'artist'):
         return
 
-    return models.Artist(uri=web_artist['uri'], name=web_artist.get('name'))
+    return models.Artist(uri=web_artist['uri'], name=web_artist['name'])
 
 
+@web_memoized
 def web_to_album(web_album):
     if not valid_web_data(web_album, 'album'):
         return
@@ -271,11 +285,10 @@ def web_to_album(web_album):
     artists = filter(None, artists)
 
     return models.Album(
-        uri=web_album['uri'],
-        name=web_album.get('name'),
-        artists=artists)
+        uri=web_album['uri'], name=web_album['name'], artists=artists)
 
 
+@web_memoized
 def web_to_track(web_track, bitrate=None):
     ref = web_to_track_ref(web_track)
     if ref is None:
